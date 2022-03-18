@@ -14,7 +14,6 @@ enum class LogLevel
 	INFO,
 	ERROR,
 	FATAL,
-	
 };
 
 std::string LevelToString(LogLevel level)
@@ -29,14 +28,6 @@ std::string LevelToString(LogLevel level)
 	}
 }
 
-
-enum WriterError
-{
-	sOk,
-	eErrorFileWrite,
-};
-
-
 //Выводит информацию
 class Writer
 {
@@ -46,90 +37,75 @@ public:
 	Writer(boost::filesystem::path path)
 	{
 		InitLogFile(path);
-		UseFile();
 	}
-
 
 	Writer()
 	{
-		UseStderr();
+
 	}
 
-
-	bool InitLogFile(boost::filesystem::path path)
+	bool InitLogFile(boost::filesystem::path &path)
 	{
 		if (exists(path))
 		{
-			pathToLogFile = path;
+			m_pathToLog = path;
 		}
 		else
 		{
-			pathToLogFile.append("./Log");
+			m_pathToLog.append("./Log");
 
-			if (!boost::filesystem::exists(pathToLogFile))
+			if (!exists(m_pathToLog))
 			{
-				boost::filesystem::create_directory(pathToLogFile);
+				create_directory(m_pathToLog);
 			}
 
 			auto time = boost::posix_time::second_clock::local_time();
 
 			std::stringstream fileName;
 
-			fileName <<"/" << PROGRAM_NAME << "-" PROGRAM_VERSION << "_"
+			fileName <<"/" PROGRAM_NAME << "-" PROGRAM_VERSION << "_"
 				<< to_simple_string(time.date()) << "_"
 				<< time.time_of_day().hours() << "-" << time.time_of_day().minutes() << ".log";
 
-			pathToLogFile.append(fileName.str());
+			m_pathToLog.append(fileName.str());
 			boost::filesystem::fstream fstream;
-			fstream.open("./log/file.txt");
+			fstream.open(m_pathToLog);
 			fstream.close();
 		}
 
+		return true;
+
 	}
 
-	void UseFile()
-	{
-		this->useFile = 1;
-	}
-
-	void UseStderr()
-	{
-		this->useFile = 0;
-	}
 
 	void Write(std::stringstream& sstrm)
 	{
 		m_mutex.lock();
 
-		if (this->useFile)
+		if(m_pathToLog.empty())
 		{
-			if (WriteToFile(sstrm))
+			if (WriteToStderr(sstrm))
 			{
 				//TODO: error Writer return 
-				std::cerr << "Error write to file";
+				std::cerr << "Write to cderr succes";
 			}
 		}
-
-		if (WriteToStderr(sstrm))
+		else if(WriteToFile(sstrm))
 		{
 			//TODO: error Writer return 
-			std::cerr << "Error write to file";
+			std::cerr << "Write to file success";
 		}
-
+		
 		m_mutex.unlock();
 	}
-
-
-
-
 private:
 	bool WriteToFile(std::stringstream& sstrm)
 	{
 		boost::filesystem::ofstream mOfstream;
-		mOfstream.open(pathToLogFile);
+		mOfstream.open(m_pathToLog);
 		mOfstream << sstrm.rdbuf();
 		mOfstream.close();
-		return false;
+		return true;
 	}
 
 	bool WriteToStderr(std::stringstream& sstrm)
@@ -138,12 +114,8 @@ private:
 		return false;
 	}
 
-	bool useFile = 0;
-	//boost::filesystem::path  destination;
 	std::mutex m_mutex;
-
-	boost::filesystem::path pathToLogFile;
-
+	boost::filesystem::path m_pathToLog;
 };
 
 
@@ -157,7 +129,6 @@ public:
 
 	std::stringstream& get()
 	{
-		
 		return  m_sstr;
 	}
 
@@ -169,7 +140,6 @@ public:
 private:
 	std::shared_ptr<Writer> wr;
 	std::stringstream m_sstr;
-
 };
 
 
@@ -194,31 +164,14 @@ private:
 int main()
 
 {
-	auto wr_ptr = std::make_shared<Writer>();
+	auto wr_ptr = std::make_shared<Writer>(".123");
+
 
 	logger abc(wr_ptr);
 
 	TRACE(abc, LogLevel::INFO) << " adadasdasd";
-	//std::this_thread::sleep_for(std::chrono::seconds(1));
 	TRACE(abc, LogLevel::ERROR) << " adadasdasd";
-	//std::this_thread::sleep_for(std::chrono::seconds(1));
 	TRACE(abc, LogLevel::FATAL) << " adadasdasd";
-
-
-
-	//std::this_thread::sleep_for(std::chrono::seconds(1));
-
-	std::thread thr(demofunc, wr_ptr);
-
-	std::thread th2(demofunc, wr_ptr);
-
-	thr.join();
-
-	//std::this_thread::sleep_for(std::chrono::seconds(1));
-	//std::this_thread::sleep_for(std::chrono::seconds(1));
-
-	th2.join();
-
 
 
 
