@@ -8,6 +8,9 @@
 #include "ver_info.h"
 
 
+#define DEFAULT_DIR  boost::filesystem::path("./Log")
+
+
 enum class LogLevel
 {
 	DEBUG,
@@ -29,7 +32,7 @@ std::string LevelToString(LogLevel level)
 }
 
 //Выводит информацию
-class Writer
+class Logger
 {
 
 public:
@@ -37,42 +40,27 @@ public:
 
 	//TODO :: добавить очередь задач 
 
-	Writer(boost::filesystem::path path) :m_pathToLog(InitLogFile(path))
+	Logger(boost::filesystem::path path) :m_pathToLog(InitLogFile(path))
 	{}
 
-	Writer()
+	Logger()
 	{}
 
 	boost::filesystem::path InitLogFile(boost::filesystem::path &path)
 	{
-		boost::filesystem::path tmpPath;
-
 		if (exists(path))
 		{
-			tmpPath = path;
-			return tmpPath;
+			if (is_regular_file(path))
+			{
+				return path;
+			}
+			if (is_directory(path))
+			{
+				return CreatePathToFile(path);
+			}
 		}
-		
-		tmpPath.append("./Log");
-		if (!exists(tmpPath))
-		{
-			create_directory(tmpPath);
-		}
 
-		auto time = boost::posix_time::second_clock::local_time();
-
-		std::stringstream fileName;
-
-		fileName <<"/" PROGRAM_NAME << "-" PROGRAM_VERSION << "_"
-			<< to_simple_string(time.date()) << "_"
-			<< time.time_of_day().hours() << "-" << time.time_of_day().minutes() << ".log";
-
-		tmpPath.append(fileName.str());
-		boost::filesystem::fstream fstream;
-		fstream.open(tmpPath);
-		fstream.close();
-
-		return tmpPath;
+		return CreatePathToFile(DEFAULT_DIR);
 
 	}
 
@@ -85,13 +73,13 @@ public:
 		{
 			if (WriteToStderr(sstrm))
 			{
-				//TODO: error Writer return 
-				std::cerr << "Write to cderr succes";
+				//TODO: error Logger return 
+				std::cerr << "Write to cderr success";
 			}
 		}
 		else if(WriteToFile(sstrm))
 		{
-			//TODO: error Writer return 
+			//TODO: error Logger return 
 			std::cerr << "Write to file success";
 		}
 		
@@ -107,21 +95,60 @@ private:
 		return true;
 	}
 
+	boost::filesystem::path CreatePathToFile(boost::filesystem::path pathToDir)
+	{
+		boost::filesystem::path tmpPath;
+
+		tmpPath.append(pathToDir);
+
+		if (!exists(tmpPath))
+		{
+			create_directory(tmpPath);
+		}
+
+		std::stringstream fileName;
+		fileName << "/" << PROGRAM_NAME << "_" << PROGRAM_VERSION << "_";
+		boost::posix_time::ptime date_time = boost::posix_time::second_clock::local_time();
+		fileName.imbue(std::locale(fileName.getloc(), new boost::posix_time::time_facet("%d.%m.%Y_%H.%M")));
+		fileName << date_time << ".log";
+
+		tmpPath.append(fileName.str());
+
+		boost::filesystem::fstream fstream;
+		fstream.open(tmpPath);
+		fstream.close();
+
+		return tmpPath;
+	}
+
+
 	bool WriteToStderr(std::stringstream& sstrm)
 	{
 		std::cerr << sstrm.rdbuf();
-		return false;
+		return true;
 	}
 
 	std::mutex m_mutex;
 	boost::filesystem::path m_pathToLog;
+
 };
 
+std::shared_ptr<Logger> GetWriter(boost::filesystem::path path)
+{
+	return std::make_shared<Logger>(path);
+}
 
-class logger 
+std::shared_ptr<Logger> GetWriter()
+{
+	return std::make_shared<Logger>();
+}
+
+
+
+class Collector 
 {
 public:
-	logger(std::shared_ptr<Writer> writer) : wr(writer)
+	Collector(std::shared_ptr<Logger> writer) : wr(writer)
 	{
 
 	}
@@ -131,13 +158,13 @@ public:
 		return  m_sstr;
 	}
 
-	~logger()
+	~Collector()
 	{
 		wr->Write(m_sstr);
 	}
 
 private:
-	std::shared_ptr<Writer> wr;
+	std::shared_ptr<Logger> wr;
 	std::stringstream m_sstr;
 };
 
@@ -150,23 +177,13 @@ private:
 		<< "\t" <<__func__ << "\t"
 
 
- void demofunc(std::shared_ptr<Writer> wr_ptr)
-{
-	logger abc(wr_ptr);
-	TRACE(abc, LogLevel::DEBUG) << " adadasdasd";
-	TRACE(abc, LogLevel::FATAL) << " adadasdasd";
-	TRACE(abc, LogLevel::INFO) << " adadasdasd";
-}
-
-
-
 int main()
 
 {
-	auto wr_ptr = std::make_shared<Writer>(".123");
+	auto wr_ptr = GetWriter("123");
 
 
-	logger abc(wr_ptr);
+	Collector abc(wr_ptr);
 
 	TRACE(abc, LogLevel::INFO) << " adadasdasd";
 	TRACE(abc, LogLevel::ERROR) << " adadasdasd";

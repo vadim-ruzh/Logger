@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="log.log" />
+    <Text Include="Текст.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="context.h" />

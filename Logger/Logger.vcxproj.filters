@@ -26,6 +26,9 @@
     <Text Include="log.log">
       <Filter>Исходные файлы</Filter>
     </Text>
+    <Text Include="Текст.txt">
+      <Filter>Исходные файлы</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="context.h">
