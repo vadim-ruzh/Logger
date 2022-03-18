@@ -34,46 +34,45 @@ class Writer
 
 public:
 
-	Writer(boost::filesystem::path path)
-	{
-		InitLogFile(path);
-	}
+
+	//TODO :: добавить очередь задач 
+
+	Writer(boost::filesystem::path path) :m_pathToLog(InitLogFile(path))
+	{}
 
 	Writer()
-	{
+	{}
 
-	}
-
-	bool InitLogFile(boost::filesystem::path &path)
+	boost::filesystem::path InitLogFile(boost::filesystem::path &path)
 	{
+		boost::filesystem::path tmpPath;
+
 		if (exists(path))
 		{
-			m_pathToLog = path;
+			tmpPath = path;
+			return tmpPath;
 		}
-		else
+		
+		tmpPath.append("./Log");
+		if (!exists(tmpPath))
 		{
-			m_pathToLog.append("./Log");
-
-			if (!exists(m_pathToLog))
-			{
-				create_directory(m_pathToLog);
-			}
-
-			auto time = boost::posix_time::second_clock::local_time();
-
-			std::stringstream fileName;
-
-			fileName <<"/" PROGRAM_NAME << "-" PROGRAM_VERSION << "_"
-				<< to_simple_string(time.date()) << "_"
-				<< time.time_of_day().hours() << "-" << time.time_of_day().minutes() << ".log";
-
-			m_pathToLog.append(fileName.str());
-			boost::filesystem::fstream fstream;
-			fstream.open(m_pathToLog);
-			fstream.close();
+			create_directory(tmpPath);
 		}
 
-		return true;
+		auto time = boost::posix_time::second_clock::local_time();
+
+		std::stringstream fileName;
+
+		fileName <<"/" PROGRAM_NAME << "-" PROGRAM_VERSION << "_"
+			<< to_simple_string(time.date()) << "_"
+			<< time.time_of_day().hours() << "-" << time.time_of_day().minutes() << ".log";
+
+		tmpPath.append(fileName.str());
+		boost::filesystem::fstream fstream;
+		fstream.open(tmpPath);
+		fstream.close();
+
+		return tmpPath;
 
 	}
 
