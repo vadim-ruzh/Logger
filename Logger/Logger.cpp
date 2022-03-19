@@ -132,6 +132,8 @@ private:
 
 int main()
 {
+	// TEST
+	// TEST 2
 	std::string path("./logg/text.txt");
 	auto wr_ptr = std::make_shared<Logger>(path);
 
