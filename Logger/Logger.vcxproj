@@ -145,11 +145,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="log.log" />
-    <Text Include="Текст.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="context.h" />
+    <ClInclude Include="Messages.h" />
     <ClInclude Include="ver_info.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -159,6 +155,7 @@
     <Import Project="..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets" Condition="Exists('..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets')" />
     <Import Project="..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets" Condition="Exists('..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets')" />
     <Import Project="..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets" Condition="Exists('..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets')" />
+    <Import Project="..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets" Condition="Exists('..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -169,5 +166,6 @@
     <Error Condition="!Exists('..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets'))" />
   </Target>
 </Project>
