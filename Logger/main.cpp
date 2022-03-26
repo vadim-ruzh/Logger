@@ -12,9 +12,12 @@ int main()
 
 
 
-	TRACE(abc,loglevel::debug) << GetExecutableName();
+	TRACE(abc,LogLevel::DEBUG) << GetExecutableName();
+
+	abc << "asdad" << 123;
 
 	std::cout << "\n---------------------------------------------------" << std::endl;
+	std::cout << std::hex << std::this_thread::get_id() << " 123" << std::endl;
 	std::cout << GetExecutableName() << std::endl;
 
 

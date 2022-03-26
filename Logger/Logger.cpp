@@ -12,16 +12,17 @@
 class Logger
 {
 public:
-	Logger(std::string programName = "") : m_pathToLog(InitPathToLog(programName.empty() ? GetExecutableName() : programName)){}
+	Logger(const std::string& programName = "") :
+	m_pathToLog(InitPathToLog(programName.empty() ? GetExecutableName() : programName)){}
 
 	void WriteToFile(const std::string& message)
 	{
 		m_mutex.lock();
 
-		boost::filesystem::ofstream mOfstream;
-		mOfstream.rdbuf()->open(m_pathToLog.string(), std::ios_base::app, _SH_DENYWR);
-		mOfstream << message;
-		mOfstream.close();
+		boost::filesystem::ofstream mOfstrm;
+		mOfstrm.rdbuf()->open(m_pathToLog.string(), std::ios_base::app, _SH_DENYWR);
+		mOfstrm << message;
+		mOfstrm.close();
 
 		m_mutex.unlock();
 	}
@@ -32,12 +33,15 @@ private:
 		boost::filesystem::path logPath("C:/ProgramData");
 		logPath /= programName;
 		logPath /= "Log";
-		logPath /= createLogFileName(programName);
-
 		if(!exists(logPath))
 		{
-			boost::filesystem::fstream fstream;
-			fstream.open(logPath);
+			create_directories(logPath);
+		}
+
+		logPath /= createLogFileName(programName);
+		if(!exists(logPath))
+		{
+			boost::filesystem::fstream fstream(logPath);
 			fstream.close();
 		}
 
@@ -63,20 +67,24 @@ private:
 	boost::filesystem::path m_pathToLog;
 };
 
-
 class Collector
 {
 public:
 	Collector(const std::shared_ptr<Logger> logger) : m_loggerPtr(logger) {}
-	std::stringstream& get()
+
+	template<typename T>
+	Collector& operator<<(const T& message)
 	{
-		return  m_sstr;
+		m_sstr << message;
+		return *this;
 	}
+
 	~Collector()
 	{
 		m_loggerPtr->WriteToFile(m_sstr.str());
 	}
 private:
+
 	std::shared_ptr<Logger> m_loggerPtr;
 	std::stringstream m_sstr;
 };

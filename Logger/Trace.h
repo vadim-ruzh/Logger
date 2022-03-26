@@ -1,28 +1,27 @@
 #pragma once
 
-enum class loglevel
+enum class LogLevel
 {
-	debug,
-	info,
-	error,
+	DEBUG,
+	INFO,
+	ERROR,
 };
 
-inline std::string leveltostring(loglevel level)
+inline std::string LvlToString(LogLevel lvl)
 {
-	switch (level)
+	switch (lvl)
 	{
-	case loglevel::debug: return std::string{ "dbg" };
-	case loglevel::info: return std::string{ "inf" };
-	case loglevel::error: return std::string{ "err" };
-	default:return std::string{ "unknown" };
+	case LogLevel::DEBUG: return std::string{ "DBG" };
+	case LogLevel::INFO: return std::string{ "INF" };
+	case LogLevel::ERROR: return std::string{ "ERR" };
 	}
 }
 
-#define TRACE(tracer,level)\
-	tracer.get()\
+#define TRACE(collector,lvl)\
+	collector\
 		<< "\n" << boost::posix_time::microsec_clock::local_time().time_of_day()\
-		<< "\t" << std::this_thread::get_id()\
-		<< "\t" <<leveltostring(level) \
+		<< "\t" << std::hex << std::this_thread::get_id()\
+		<< "\t" <<LvlToString(lvl) \
 		<< "\t" <<__func__ << "\t"
 
 
