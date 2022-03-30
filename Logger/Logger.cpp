@@ -19,10 +19,10 @@ public:
 	{
 		m_mutex.lock();
 
-		boost::filesystem::ofstream mOfstrm;
-		mOfstrm.rdbuf()->open(m_pathToLog.string(), std::ios_base::app, _SH_DENYWR);
-		mOfstrm << message;
-		mOfstrm.close();
+		boost::filesystem::ofstream ofstrm;
+		ofstrm.rdbuf()->open(m_pathToLog.string(), std::ios_base::app, _SH_DENYWR);
+		ofstrm << message;
+		ofstrm.close();
 
 		m_mutex.unlock();
 	}
@@ -33,16 +33,21 @@ private:
 		boost::filesystem::path logPath("C:/ProgramData");
 		logPath /= programName;
 		logPath /= "Log";
+
+		//If a directory for logs does not exist - create a directory
 		if(!exists(logPath))
 		{
 			create_directories(logPath);
 		}
 
 		logPath /= createLogFileName(programName);
+
+		//If the log file does not exist - create a file
 		if(!exists(logPath))
 		{
-			boost::filesystem::fstream fstream(logPath);
-			fstream.close();
+			boost::filesystem::fstream fstrm;
+			fstrm.open(logPath);
+			fstrm.close();
 		}
 
 		return logPath;
@@ -56,6 +61,7 @@ private:
 #ifdef PROGRAM_VERSION
 		fileName << PROGRAM_VERSION <<"_";
 #endif
+
 		const boost::posix_time::ptime date_time = boost::posix_time::second_clock::local_time();
 		fileName.imbue(std::locale(fileName.getloc(), new boost::posix_time::time_facet("%d.%m.%Y_%H.%M")));
 		fileName << date_time << ".log";
