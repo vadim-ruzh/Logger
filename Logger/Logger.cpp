@@ -8,11 +8,13 @@
 #include <string>
 #include <mutex>
 #include "ExecutableName.h"
+#include "Registry.cpp"
 
 class Logger
 {
 public:
 	Logger(const std::string& programName = "") :
+	dbgMode(CheckDbg(programName.empty() ? GetExecutableName() : programName)),
 	m_pathToLog(InitPathToLog(programName.empty() ? GetExecutableName() : programName)){}
 
 	void WriteToFile(const std::string& message)
@@ -27,6 +29,7 @@ public:
 		m_mutex.unlock();
 	}
 
+	bool dbgMode;
 private:
 	boost::filesystem::path InitPathToLog(const std::string& programName)
 	{
@@ -63,6 +66,32 @@ private:
 		return fileName.str();
 	}
 
+	bool CheckDbg(const std::string& programName)
+	{
+		LSTATUS lstatus;
+
+		//registry path
+		auto regPath = utf8toUtf16("SOFTWARE\\" + programName);
+		//open/create key
+		WinRegManager reg(Hkeys::HkeyCurrentUser, regPath, AccessRights::AccessAll);
+
+		//read from a variable
+		const auto res = reg.GetDword(L"DebugMode",lstatus);
+
+		// 0 - ok , !0 - error
+		if(lstatus)
+		{	//create variable DebugMode = 999
+			reg.SetDword(L"DebugMode", 999);
+			return false;
+		}
+		if(res < 1000)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	std::mutex m_mutex;
 	boost::filesystem::path m_pathToLog;
 };
@@ -70,7 +99,10 @@ private:
 class Collector
 {
 public:
-	Collector(const std::shared_ptr<Logger> logger) : m_loggerPtr(logger) {}
+	Collector(const std::shared_ptr<Logger> logger) : m_loggerPtr(logger)
+	{
+		dbgMode = m_loggerPtr->dbgMode;
+	}
 
 	template<typename T>
 	Collector& operator<<(const T& message)
@@ -79,10 +111,13 @@ public:
 		return *this;
 	}
 
+
 	~Collector()
 	{
 		m_loggerPtr->WriteToFile(m_sstr.str());
 	}
+
+	bool dbgMode;
 private:
 
 	std::shared_ptr<Logger> m_loggerPtr;

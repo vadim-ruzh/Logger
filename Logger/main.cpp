@@ -1,6 +1,7 @@
 #include <iostream>
-#include "Logger.cpp"
+
 #include "ExecutableName.h"
+#include "Logger.cpp"
 #include "Trace.h"
 
 
@@ -12,7 +13,8 @@ int main()
 
 
 
-	TRACE(abc,LogLevel::DEBUG) << GetExecutableName();
+	TRACE(abc,LogLevel::debug) << GetExecutableName();
+	TRACE(abc,LogLevel::info) << GetExecutableName();
 
 	abc << "asdad" << 123;
 
