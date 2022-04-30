@@ -4,17 +4,15 @@
 #include "Logger.cpp"
 #include "Trace.h"
 
-
 int main()
 {
 	const auto wr_ptr = std::make_shared<Logger>();
 
 	Collector abc(wr_ptr);
 
+	//TRACE(abc,LogLevel::Debug) << GetExecutableName();
+	//TRACE(abc,LogLevel::Error) << GetExecutableName();
 
-
-	TRACE(abc,LogLevel::debug) << GetExecutableName();
-	TRACE(abc,LogLevel::info) << GetExecutableName();
 
 	abc << "asdad" << 123;
 
@@ -24,6 +22,7 @@ int main()
 
 
 	std::cout << "Current time with second resolution: " << std::endl;
+
 
 	return 0;
 }

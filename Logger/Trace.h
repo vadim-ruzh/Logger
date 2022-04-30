@@ -1,19 +1,21 @@
 #pragma once
 
+#include <string>
+
 enum class LogLevel
 {
-	debug,
-	info,
-	error
+	Debug,
+	Info,
+	Error,
 };
 
-inline std::string LvlToString(LogLevel lvl)
+std::string LvlToString(LogLevel lvl)
 {
 	switch (lvl)
 	{
-	case LogLevel::debug: return std::string{ "DBG" };
-	case LogLevel::info: return std::string{ "INF" };
-	case LogLevel::error: return std::string{ "ERR" };
+	case LogLevel::Debug: return std::string{ "DBG" };
+	case LogLevel::Info: return std::string{ "INF" };
+	case LogLevel::Error: return std::string{ "ERR" };
 	}
 }
 

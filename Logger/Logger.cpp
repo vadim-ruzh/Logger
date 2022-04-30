@@ -8,7 +8,7 @@
 #include <string>
 #include <mutex>
 #include "ExecutableName.h"
-#include "Registry.cpp"
+#include "Registry.h"
 
 class Logger
 {
@@ -21,7 +21,7 @@ public:
 	{
 		m_mutex.lock();
 
-		boost::filesystem::ofstream mOfstrm;
+		std::ofstream mOfstrm;
 		mOfstrm.rdbuf()->open(m_pathToLog.string(), std::ios_base::app, _SH_DENYWR);
 		mOfstrm << message;
 		mOfstrm.close();
@@ -44,7 +44,7 @@ private:
 		logPath /= createLogFileName(programName);
 		if(!exists(logPath))
 		{
-			boost::filesystem::fstream fstream(logPath);
+			std::ofstream fstream(logPath.c_str());
 			fstream.close();
 		}
 
@@ -68,23 +68,22 @@ private:
 
 	bool CheckDbg(const std::string& programName)
 	{
-		LSTATUS lstatus;
+		const auto pathToRegistryKey = utf8toUtf16("HKEY_CURRENT_USER\\SOFTWARE\\" + programName);
 
-		//registry path
-		auto regPath = utf8toUtf16("SOFTWARE\\" + programName);
-		//open/create key
-		WinRegManager reg(Hkeys::HkeyCurrentUser, regPath, AccessRights::AccessAll);
+		Reg::Editor regEditor(pathToRegistryKey);
 
-		//read from a variable
-		const auto res = reg.GetDword(L"DebugMode",lstatus);
-
-		// 0 - ok , !0 - error
-		if(lstatus)
-		{	//create variable DebugMode = 999
-			reg.SetDword(L"DebugMode", 999);
-			return false;
-		}
-		if(res < 1000)
+		DWORD result;
+		auto readStatus = regEditor.GetDword(L"DebugMode", result);
+		if(readStatus != Reg::ResultCode::sOk)
+		{
+			auto setStatus = regEditor.SetDword(L"DebugMode", 1050);
+			if(setStatus != Reg::ResultCode::sOk)
+			{
+				return false;
+			}
+			result = 999;
+		} 
+		if(result < 1000)
 		{
 			return false;
 		}
@@ -111,7 +110,6 @@ public:
 		return *this;
 	}
 
-
 	~Collector()
 	{
 		m_loggerPtr->WriteToFile(m_sstr.str());
@@ -123,3 +121,4 @@ private:
 	std::shared_ptr<Logger> m_loggerPtr;
 	std::stringstream m_sstr;
 };
+
