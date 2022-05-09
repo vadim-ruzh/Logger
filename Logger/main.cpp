@@ -1,8 +1,8 @@
 #include <iostream>
-#include "Logger.cpp"
-#include "ExecutableName.h"
-#include "Trace.h"
 
+#include "ExecutableName.h"
+#include "Logger.cpp"
+#include "Trace.h"
 
 int main()
 {
@@ -10,9 +10,9 @@ int main()
 
 	Collector abc(wr_ptr);
 
+	//TRACE(abc,LogLevel::Debug) << GetExecutableName();
+	//TRACE(abc,LogLevel::Error) << GetExecutableName();
 
-
-	TRACE(abc,LogLevel::DEBUG) << GetExecutableName();
 
 	abc << "asdad" << 123;
 
@@ -22,6 +22,7 @@ int main()
 
 
 	std::cout << "Current time with second resolution: " << std::endl;
+
 
 	return 0;
 }

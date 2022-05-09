@@ -8,18 +8,20 @@
 #include <string>
 #include <mutex>
 #include "ExecutableName.h"
+#include "Registry.h"
 
 class Logger
 {
 public:
 	Logger(const std::string& programName = "") :
+	dbgMode(CheckDbg(programName.empty() ? GetExecutableName() : programName)),
 	m_pathToLog(InitPathToLog(programName.empty() ? GetExecutableName() : programName)){}
 
 	void WriteToFile(const std::string& message)
 	{
 		m_mutex.lock();
 
-		boost::filesystem::ofstream mOfstrm;
+		std::ofstream mOfstrm;
 		mOfstrm.rdbuf()->open(m_pathToLog.string(), std::ios_base::app, _SH_DENYWR);
 		mOfstrm << message;
 		mOfstrm.close();
@@ -27,6 +29,7 @@ public:
 		m_mutex.unlock();
 	}
 
+	bool dbgMode;
 private:
 	boost::filesystem::path InitPathToLog(const std::string& programName)
 	{
@@ -41,7 +44,7 @@ private:
 		logPath /= createLogFileName(programName);
 		if(!exists(logPath))
 		{
-			boost::filesystem::fstream fstream(logPath);
+			std::ofstream fstream(logPath.c_str());
 			fstream.close();
 		}
 
@@ -63,6 +66,31 @@ private:
 		return fileName.str();
 	}
 
+	bool CheckDbg(const std::string& programName)
+	{
+		const auto pathToRegistryKey = utf8toUtf16("HKEY_CURRENT_USER\\SOFTWARE\\" + programName);
+
+		Reg::Editor regEditor(pathToRegistryKey);
+
+		DWORD result;
+		auto readStatus = regEditor.GetDword(L"DebugMode", result);
+		if(readStatus != Reg::ResultCode::sOk)
+		{
+			auto setStatus = regEditor.SetDword(L"DebugMode", 1050);
+			if(setStatus != Reg::ResultCode::sOk)
+			{
+				return false;
+			}
+			result = 999;
+		} 
+		if(result < 1000)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	std::mutex m_mutex;
 	boost::filesystem::path m_pathToLog;
 };
@@ -70,7 +98,10 @@ private:
 class Collector
 {
 public:
-	Collector(const std::shared_ptr<Logger> logger) : m_loggerPtr(logger) {}
+	Collector(const std::shared_ptr<Logger> logger) : m_loggerPtr(logger)
+	{
+		dbgMode = m_loggerPtr->dbgMode;
+	}
 
 	template<typename T>
 	Collector& operator<<(const T& message)
@@ -83,8 +114,11 @@ public:
 	{
 		m_loggerPtr->WriteToFile(m_sstr.str());
 	}
+
+	bool dbgMode;
 private:
 
 	std::shared_ptr<Logger> m_loggerPtr;
 	std::stringstream m_sstr;
 };
+

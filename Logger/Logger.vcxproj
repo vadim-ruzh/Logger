@@ -141,14 +141,16 @@
   <ItemGroup>
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Registry.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="Registry.h" />
     <ClInclude Include="Trace.h" />
     <ClInclude Include="ExecutableName.h" />
     <ClInclude Include="ver_info.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -158,6 +160,7 @@
     <Import Project="..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets" Condition="Exists('..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets')" />
     <Import Project="..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets" Condition="Exists('..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets')" />
     <Import Project="..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets" Condition="Exists('..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets')" />
+    <Import Project="..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets" Condition="Exists('..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -169,5 +172,6 @@
     <Error Condition="!Exists('..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_log-vc142.1.78.0\build\boost_log-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread-vc142.1.78.0\build\boost_thread-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets'))" />
   </Target>
 </Project>
