@@ -1,6 +1,7 @@
 #pragma once
 
-#include <string>
+#include <iomanip>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 enum class LogLevel
 {
@@ -9,22 +10,26 @@ enum class LogLevel
 	Error,
 };
 
-std::string LvlToString(LogLevel lvl)
+inline const char* ToString(LogLevel lvl)
 {
 	switch (lvl)
 	{
-	case LogLevel::Debug: return std::string{ "DBG" };
-	case LogLevel::Info: return std::string{ "INF" };
-	case LogLevel::Error: return std::string{ "ERR" };
+	case LogLevel::Debug: return "DBG";
+	case LogLevel::Info: return "INF";
+	case LogLevel::Error: return "ERR";
+	default: return "UWN";
 	}
 }
 
-
 #define TRACE(collector,lvl)\
-	if(collector.dbgMode == true && lvl == LogLevel::debug){}\
+	if((collector).IsDebugModeEnabled() == true && (lvl) == LogLevel::Debug){}\
 	else\
-	collector\
+	(collector)\
 		<< "\n" << boost::posix_time::microsec_clock::local_time().time_of_day()\
 		<< "\t" << std::hex << std::this_thread::get_id()\
-		<< "\t" <<LvlToString(lvl) \
-		<< "\t" <<__func__ << "\t"
+		<< "\t" << ToString(lvl) \
+		<< "\t" << __func__ << "\t"
+
+#define TRACE_ERR(collector) TRACE(collector, LogLevel::Error)
+#define TRACE_INF(collector) TRACE(collector, LogLevel::Info)
+#define TRACE_DBG(collector) TRACE(collector, LogLevel::Debug)

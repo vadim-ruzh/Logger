@@ -116,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,14 +140,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Registry.cpp" />
+    <ClCompile Include="registry.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Registry.h" />
-    <ClInclude Include="Trace.h" />
-    <ClInclude Include="ExecutableName.h" />
+    <ClInclude Include="error_processing.h" />
+    <ClInclude Include="logger.h" />
+    <ClInclude Include="registry.h" />
+    <ClInclude Include="trace.h" />
+    <ClInclude Include="executable_name.h" />
     <ClInclude Include="ver_info.h" />
   </ItemGroup>
   <ItemGroup>

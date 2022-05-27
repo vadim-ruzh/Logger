@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "ExecutableName.h"
-#include "Logger.cpp"
-#include "Trace.h"
+#include "executable_name.h"
+#include "logger.h"
+#include "trace.h"
 
 int main()
 {
@@ -10,18 +10,14 @@ int main()
 
 	Collector abc(wr_ptr);
 
-	//TRACE(abc,LogLevel::Debug) << GetExecutableName();
-	//TRACE(abc,LogLevel::Error) << GetExecutableName();
-
+	TRACE(abc, LogLevel::Debug) << GetExecutableName();
+	TRACE(abc, LogLevel::Error) << GetExecutableName();
 
 	abc << "asdad" << 123;
 
-	std::cout << "\n---------------------------------------------------" << std::endl;
+	std::cout << "---------------------------------------------------" << std::endl;
 	std::cout << std::hex << std::this_thread::get_id() << " 123" << std::endl;
 	std::cout << GetExecutableName() << std::endl;
-
-
-	std::cout << "Current time with second resolution: " << std::endl;
 
 
 	return 0;
