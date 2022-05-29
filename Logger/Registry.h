@@ -105,5 +105,4 @@ namespace registry
 	private:
 		std::optional<Key> mRegKey;
 	};
-
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "executable_name.h"
+#include "log_collector.h"
 #include "logger.h"
 #include "registry.h"
 #include "trace.h"
@@ -25,14 +26,14 @@ BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID IpReserved)
 
 int main()
 {
-	const auto wr_ptr = std::make_shared<Logger>();
+	const auto logger = std::make_shared<Logger>();
 
-	Collector abc(wr_ptr);
+	LogCollector logCollector(logger);
 
-	TRACE(abc, LogLevel::Debug) << GetExecutableName();
-	TRACE(abc, LogLevel::Error) << GetExecutableName();
+	TRACE(logCollector, LogLevel::Debug) << GetExecutableName();
+	TRACE(logCollector, LogLevel::Error) << GetExecutableName();
 
-	abc << "asdad" << 123;
+	logCollector << "asdad" << 123;
 
 	std::cout << "---------------------------------------------------" << std::endl;
 	std::cout << std::hex << std::this_thread::get_id() << " 123" << std::endl;

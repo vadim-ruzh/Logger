@@ -146,13 +146,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="log_collector.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="registry.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="i_debug_mode_dependent_entity.h" />
+    <ClInclude Include="log_collector.h" />
     <ClInclude Include="error_processing.h" />
-    <ClInclude Include="ILogger.h" />
+    <ClInclude Include="i_logger.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="registry.h" />
     <ClInclude Include="trace.h" />

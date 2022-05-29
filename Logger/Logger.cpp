@@ -115,23 +115,7 @@ void Logger::Write(std::string_view message)
 	fileStream << message;
 }
 
-
 bool Logger::IsDebugModeEnabled() const
 {
 	return mIsDebugModeEnabled;
-}
-
-Collector::Collector(const std::shared_ptr<Logger>& logger)
-	: mLogger(logger)
-{
-}
-
-Collector::~Collector()
-{
-	mLogger->Write(mMessageStream.str());
-}
-
-bool Collector::IsDebugModeEnabled() const
-{
-	return mLogger->IsDebugModeEnabled();
 }

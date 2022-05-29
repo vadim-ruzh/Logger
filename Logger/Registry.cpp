@@ -1,4 +1,5 @@
-#include"Registry.h"
+#include "registry.h"
+
 #include <codecvt>
 #include <unordered_map>
 #include <boost/algorithm/string.hpp>
@@ -324,7 +325,7 @@ registry::ResultCode registry::RegistryEditor::SetQword(std::wstring_view name, 
 		return ResultCode::ePermissionError;
 	}
 
-	constexpr  DWORD dataSize = sizeof(value);
+	constexpr DWORD dataSize = sizeof(value);
 
 	const LSTATUS setValueStatus = RegSetValueExW(
 		mRegKey->GetOpenedKey(),
