@@ -3,6 +3,7 @@
 #include <sstream>
 #include <memory>
 #include <mutex>
+#include <string_view>
 #include <boost/filesystem.hpp>
 
 class IDebugModeDependentEntity
