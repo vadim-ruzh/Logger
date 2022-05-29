@@ -16,19 +16,28 @@
     <Filter Include="Исходные файлы\registry">
       <UniqueIdentifier>{19e05e54-93ea-491a-8231-4aef36cc1bff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\logger">
+      <UniqueIdentifier>{1c2f8a66-b480-4cbb-bb78-2f3b506f46b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\dll_config">
+      <UniqueIdentifier>{7f1cd064-b27c-4200-aa79-38751cc608c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="logger.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="registry.cpp">
       <Filter>Исходные файлы\registry</Filter>
     </ClCompile>
+    <ClCompile Include="logger.cpp">
+      <Filter>Исходные файлы\logger</Filter>
+    </ClCompile>
     <ClCompile Include="log_collector.cpp">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\logger</Filter>
+    </ClCompile>
+    <ClCompile Include="dll_main.cpp">
+      <Filter>Исходные файлы\dll_config</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Исходные файлы\dll_config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -47,17 +56,26 @@
     <ClInclude Include="error_processing.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="logger.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="i_logger.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="log_collector.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="i_debug_mode_dependent_entity.h">
       <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Исходные файлы\dll_config</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Исходные файлы\dll_config</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Исходные файлы\logger</Filter>
+    </ClInclude>
+    <ClInclude Include="log_collector.h">
+      <Filter>Исходные файлы\logger</Filter>
+    </ClInclude>
+    <ClInclude Include="dll_state.h">
+      <Filter>Исходные файлы\dll_config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

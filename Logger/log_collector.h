@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 #include <sstream>
-
 #include "i_logger.h"
+
 
 class LogCollector
 	: public IDebugModeDependentEntity

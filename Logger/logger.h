@@ -7,7 +7,8 @@
 #include <boost/filesystem.hpp>
 #include "i_logger.h"
 
-class Logger
+
+class  Logger
 	: public ILogger
 	, public IDebugModeDependentEntity
 {

@@ -4,9 +4,10 @@
 #include <stdexcept>
 #include <string>
 #include <Windows.h>
-#include <filesystem>
-#include <string_view>
 #include <boost/noncopyable.hpp>
+#include "pch.h"
+#include "dll_state.h"
+
 
 namespace registry
 {
@@ -24,17 +25,17 @@ namespace registry
 		eRenameValueError
 	};
 
-	class Exception : std::runtime_error
+	class LOGGER_API Exception : std::runtime_error
 	{
 	public:
 		Exception(std::string_view errorMessage, registry::ResultCode errorCode);
-		[[nodiscard]] ResultCode GetErrorCode() const;
+		[[nodiscard]] ResultCode GetErrorCode() const noexcept;
 
 	private:
 		ResultCode mErrorCode;
 	};
 
-	class Key : boost::noncopyable
+	class LOGGER_API Key : boost::noncopyable
 	{
 	public:
 		/**
@@ -43,64 +44,66 @@ namespace registry
 		 * @remark If @param isReadOnly is false and if the key in the given path cannot be opened, there will be an attempt to create it
 		 */
 		explicit Key(std::wstring_view pathToRegistryKey, bool isReadOnly = false) noexcept(false);
-		~Key();
+
+		~Key() noexcept;
 
 		/**
 		 * @remark has no effect and returns @memberof registry::ResultCode::eIncorrectPathToKey if any of the parameters is empty.
 		 *  @remark has no effect and returns @memberof registry::ResultCode::ePermissionError if key @memberof registry::Key::IsReadOnly
 		 */
-		[[nodiscard]] ResultCode RenameSubKey(std::wstring_view subKey, std::wstring_view newSubKeyName) const;
+		[[nodiscard]] ResultCode RenameSubKey(std::wstring_view subKey, std::wstring_view newSubKeyName) const noexcept;
 		/**
 		 * @remark has no effect and returns @memberof registry::ResultCode::eIncorrectPathToKey if @param subKey is empty.
 		 * @remark has no effect and returns @memberof registry::ResultCode::ePermissionError if key @memberof registry::Key::IsReadOnly
 		 */
-		[[nodiscard]] ResultCode CreateSubKey(std::wstring_view subKey) const;
+		[[nodiscard]] ResultCode CreateSubKey(std::wstring_view subKey) const noexcept;
 		/**
 		 * @remark has no effect and returns @memberof registry::ResultCode::eIncorrectPathToKey if @param subKey is empty.
 		 *  @remark has no effect and returns @memberof registry::ResultCode::ePermissionError if key @memberof registry::Key::IsReadOnly
 		 */
-		[[nodiscard]] ResultCode DeleteSubKey(std::wstring_view subKey) const;
+		[[nodiscard]] ResultCode DeleteSubKey(std::wstring_view subKey) const noexcept;
 
-		[[nodiscard]] HKEY GetOpenedKey() const;
-		[[nodiscard]] bool IsReadOnly() const;
+		[[nodiscard]] HKEY GetOpenedKey() const noexcept;
+		[[nodiscard]] bool IsReadOnly() const noexcept;
 
 	private:
 		HKEY mOpenRegistryKey;
 		REGSAM mAccessRight;
 	};
 
-	class RegistryEditor : boost::noncopyable
+	class LOGGER_API RegistryEditor : boost::noncopyable
 	{
 	public:
 		explicit RegistryEditor(std::wstring_view pathToRegKey, bool isReadOnly = false) noexcept(false);
+
 		~RegistryEditor();
 
 		/**
 		 * @remark If an exception is raised during the initialization of a new key, the old key will not be changed
 		 */
-		[[nodiscard]] ResultCode ChangeKey(std::wstring_view pathToRegKey, const bool& isReadOnly = false);
+		[[nodiscard]] ResultCode ChangeKey(std::wstring_view pathToRegKey, const bool& isReadOnly = false) noexcept;
 
-		[[nodiscard]] ResultCode GetDword(std::wstring_view name, DWORD& value) const;
-		[[nodiscard]] ResultCode GetQword(std::wstring_view name, ULONGLONG& value) const;
-		[[nodiscard]] ResultCode GetString(std::wstring_view name, std::wstring& value) const;
-		[[nodiscard]] ResultCode GetExpandString(std::wstring_view name, std::wstring& value) const;
+		[[nodiscard]] ResultCode GetDword(std::wstring_view name, DWORD& value) const noexcept;
+		[[nodiscard]] ResultCode GetQword(std::wstring_view name, ULONGLONG& value) const noexcept;
+		[[nodiscard]] ResultCode GetString(std::wstring_view name, std::wstring& value) const noexcept;
+		[[nodiscard]] ResultCode GetExpandString(std::wstring_view name, std::wstring& value) const noexcept;
 
 		/**
 		 * @remark has no effect and returns @memberof registry::ResultCode::ePermissionError if key @memberof registry::Key::IsReadOnly
 		 */
-		[[nodiscard]] ResultCode SetDword(std::wstring_view name, DWORD value) const;
+		[[nodiscard]] ResultCode SetDword(std::wstring_view name, DWORD value) const noexcept;
 		/**
 		 * @remark has no effect and returns @memberof registry::ResultCode::ePermissionError if key @memberof registry::Key::IsReadOnly
 		 */
-		[[nodiscard]] ResultCode SetQword(std::wstring_view name, ULONGLONG value) const;
+		[[nodiscard]] ResultCode SetQword(std::wstring_view name, ULONGLONG value) const noexcept;
 		/**
 		 * @remark has no effect and returns @memberof registry::ResultCode::ePermissionError if key @memberof registry::Key::IsReadOnly
 		 */
-		[[nodiscard]] ResultCode SetString(std::wstring_view name, std::wstring_view value) const;
+		[[nodiscard]] ResultCode SetString(std::wstring_view name, std::wstring_view value) const noexcept;
 		/**
 		 * @remark has no effect and returns @memberof registry::ResultCode::ePermissionError if key @memberof registry::Key::IsReadOnly
 		 */
-		[[nodiscard]] ResultCode SetExpandString(std::wstring_view name, std::wstring_view value) const;
+		[[nodiscard]] ResultCode SetExpandString(std::wstring_view name, std::wstring_view value) const noexcept;
 
 	private:
 		std::optional<Key> mRegKey;

@@ -7,7 +7,7 @@
 
 namespace details
 {
-	registry::ResultCode SplitPathToRegistryKey(std::wstring_view pathToRegKey, HKEY& dstHandleKey, std::wstring& dstSubKey)
+	registry::ResultCode SplitPathToRegistryKey(std::wstring_view pathToRegKey, HKEY& dstHandleKey, std::wstring& dstSubKey) noexcept
 	{
 		std::wstring_view handleKey = pathToRegKey;	//By default, take the whole expression as a handle key
 		std::wstring_view subKey; // By default,no sub key
@@ -43,8 +43,7 @@ namespace details
 
 		return registry::ResultCode::sOk;
 	}
-
-	registry::ResultCode OpenRegKey(const HKEY& handleKey, std::wstring_view subKey,REGSAM access, HKEY& dstOpenRegKey)
+	registry::ResultCode OpenRegKey(const HKEY& handleKey, std::wstring_view subKey,REGSAM access, HKEY& dstOpenRegKey) noexcept
 	{
 		HKEY openRegKey;
 
@@ -65,7 +64,7 @@ namespace details
 		return registry::ResultCode::sOk;
 	}
 
-	registry::ResultCode CreateRegKey(HKEY handleKey, std::wstring_view subKey, REGSAM access, HKEY& dstOpenRegKey)
+	registry::ResultCode CreateRegKey(HKEY handleKey, std::wstring_view subKey, REGSAM access, HKEY& dstOpenRegKey) noexcept
 	{
 		HKEY openRegKey;
 
@@ -91,7 +90,7 @@ namespace details
 		return registry::ResultCode::sOk;
 	}
 
-	registry::ResultCode CreateIfKeyCantBeOpen(const HKEY& handleKey, std::wstring_view subKey, REGSAM access, HKEY& dstOpenRegKey)
+	registry::ResultCode CreateIfKeyCantBeOpen(const HKEY& handleKey, std::wstring_view subKey, REGSAM access, HKEY& dstOpenRegKey) noexcept
 	{
 		HKEY openRegKey;
 
@@ -127,7 +126,7 @@ registry::Exception::Exception(std::string_view errorMessage, ResultCode errorCo
 	
 }
 
-registry::ResultCode registry::Exception::GetErrorCode() const
+registry::ResultCode registry::Exception::GetErrorCode() const noexcept
 {
 	return mErrorCode;
 }
@@ -142,7 +141,7 @@ registry::RegistryEditor::RegistryEditor(std::wstring_view pathToRegKey, bool is
 
 registry::RegistryEditor::~RegistryEditor() = default;
 
-registry::ResultCode registry::RegistryEditor::ChangeKey(std::wstring_view pathToRegKey, const bool& isReadOnly) noexcept(false)
+registry::ResultCode registry::RegistryEditor::ChangeKey(std::wstring_view pathToRegKey, const bool& isReadOnly) noexcept
 {
 	try
 	{
@@ -157,7 +156,7 @@ registry::ResultCode registry::RegistryEditor::ChangeKey(std::wstring_view pathT
 }
 
 
-registry::ResultCode registry::RegistryEditor::GetDword(std::wstring_view name, DWORD& value) const
+registry::ResultCode registry::RegistryEditor::GetDword(std::wstring_view name, DWORD& value) const noexcept
 {
 	DWORD buffer = 0;
 	DWORD bufferSize = sizeof(buffer);
@@ -181,7 +180,7 @@ registry::ResultCode registry::RegistryEditor::GetDword(std::wstring_view name, 
 	return ResultCode::sOk;
 }
 
-registry::ResultCode registry::RegistryEditor::GetQword(std::wstring_view name, ULONGLONG& value) const
+registry::ResultCode registry::RegistryEditor::GetQword(std::wstring_view name, ULONGLONG& value) const noexcept
 {
 	ULONGLONG buffer = 0;
 	DWORD bufferSize = sizeof(buffer);
@@ -204,7 +203,7 @@ registry::ResultCode registry::RegistryEditor::GetQword(std::wstring_view name, 
 	return ResultCode::sOk;
 }
 
-registry::ResultCode registry::RegistryEditor::GetString(std::wstring_view name, std::wstring& value) const
+registry::ResultCode registry::RegistryEditor::GetString(std::wstring_view name, std::wstring& value) const noexcept
 {
 	DWORD bufferSize = 0;
 
@@ -246,7 +245,7 @@ registry::ResultCode registry::RegistryEditor::GetString(std::wstring_view name,
 	return ResultCode::sOk;
 }
 
-registry::ResultCode registry::RegistryEditor::GetExpandString(std::wstring_view name, std::wstring& value) const
+registry::ResultCode registry::RegistryEditor::GetExpandString(std::wstring_view name, std::wstring& value) const noexcept
 {
 	DWORD bufferSize = 0;
 
@@ -288,7 +287,7 @@ registry::ResultCode registry::RegistryEditor::GetExpandString(std::wstring_view
 	return ResultCode::sOk;
 }
 
-registry::ResultCode registry::RegistryEditor::SetDword(std::wstring_view name, DWORD value) const
+registry::ResultCode registry::RegistryEditor::SetDword(std::wstring_view name, DWORD value) const noexcept
 {
 	if (mRegKey->IsReadOnly())
 	{
@@ -314,7 +313,7 @@ registry::ResultCode registry::RegistryEditor::SetDword(std::wstring_view name, 
 	return ResultCode::sOk;
 }
 
-registry::ResultCode registry::RegistryEditor::SetQword(std::wstring_view name, ULONGLONG value) const
+registry::ResultCode registry::RegistryEditor::SetQword(std::wstring_view name, ULONGLONG value) const noexcept
 {
 	if (mRegKey->IsReadOnly())
 	{
@@ -340,7 +339,7 @@ registry::ResultCode registry::RegistryEditor::SetQword(std::wstring_view name, 
 	return ResultCode::sOk;
 }
 
-registry::ResultCode registry::RegistryEditor::SetString(std::wstring_view name, std::wstring_view value) const
+registry::ResultCode registry::RegistryEditor::SetString(std::wstring_view name, std::wstring_view value) const noexcept
 {
 	if (mRegKey->IsReadOnly())
 	{
@@ -367,7 +366,7 @@ registry::ResultCode registry::RegistryEditor::SetString(std::wstring_view name,
 
 }
 
-registry::ResultCode registry::RegistryEditor::SetExpandString(std::wstring_view name, std::wstring_view value) const
+registry::ResultCode registry::RegistryEditor::SetExpandString(std::wstring_view name, std::wstring_view value) const noexcept
 {
 	if (mRegKey->IsReadOnly())
 	{
@@ -419,12 +418,12 @@ registry::Key::Key(std::wstring_view pathToRegistryKey, bool isReadOnly) noexcep
 	}
 }
 
-registry::Key::~Key()
+registry::Key::~Key() noexcept
 {
 	RegCloseKey(mOpenRegistryKey);
 }
 
-registry::ResultCode registry::Key::RenameSubKey(std::wstring_view subKey, std::wstring_view newSubKeyName) const
+registry::ResultCode registry::Key::RenameSubKey(std::wstring_view subKey, std::wstring_view newSubKeyName) const noexcept
 {
 	if (IsReadOnly())
 	{
@@ -445,7 +444,7 @@ registry::ResultCode registry::Key::RenameSubKey(std::wstring_view subKey, std::
 	return ResultCode::sOk;
 }
 
-registry::ResultCode registry::Key::CreateSubKey(std::wstring_view subKey) const
+registry::ResultCode registry::Key::CreateSubKey(std::wstring_view subKey) const noexcept
 {
 	if (IsReadOnly())
 	{
@@ -461,7 +460,7 @@ registry::ResultCode registry::Key::CreateSubKey(std::wstring_view subKey) const
 	return details::CreateRegKey(mOpenRegistryKey, subKey, mAccessRight, openSubKey);
 }
 
-registry::ResultCode registry::Key::DeleteSubKey(std::wstring_view subKey) const
+registry::ResultCode registry::Key::DeleteSubKey(std::wstring_view subKey) const noexcept
 {
 	if (IsReadOnly())
 	{
@@ -482,12 +481,12 @@ registry::ResultCode registry::Key::DeleteSubKey(std::wstring_view subKey) const
 	return ResultCode::sOk;
 }
 
-HKEY registry::Key::GetOpenedKey() const
+HKEY registry::Key::GetOpenedKey() const noexcept
 {
 	return mOpenRegistryKey;
 }
 
-bool registry::Key::IsReadOnly() const
+bool registry::Key::IsReadOnly() const noexcept
 {
 	return mAccessRight != KEY_ALL_ACCESS;
 }

@@ -1,7 +1,9 @@
-﻿#define BOOST_TEST_MODULE RegistryTest
+﻿
+#define BOOST_TEST_MODULE RegistryTest
 
 #include <boost/test/included/unit_test.hpp>
-#include "registry.h"
+
+#include "Registry.h"
 
 namespace
 {
@@ -27,6 +29,7 @@ BOOST_AUTO_TEST_CASE(ReadWriteDwordValue_HappyPath)
 
 	BOOST_TEST(requiredData == controlData);
 }
+
 
 BOOST_AUTO_TEST_CASE(ReadWriteQwordValue_HappyPath)
 {
