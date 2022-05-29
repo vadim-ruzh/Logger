@@ -13,33 +13,69 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Исходные файлы\RegEdit">
+    <Filter Include="Исходные файлы\registry">
       <UniqueIdentifier>{19e05e54-93ea-491a-8231-4aef36cc1bff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\logger">
+      <UniqueIdentifier>{1c2f8a66-b480-4cbb-bb78-2f3b506f46b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\dll_config">
+      <UniqueIdentifier>{7f1cd064-b27c-4200-aa79-38751cc608c3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="registry.cpp">
+      <Filter>Исходные файлы\registry</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="logger.cpp">
+      <Filter>Исходные файлы\logger</Filter>
     </ClCompile>
-    <ClCompile Include="Registry.cpp">
-      <Filter>Исходные файлы\RegEdit</Filter>
+    <ClCompile Include="log_collector.cpp">
+      <Filter>Исходные файлы\logger</Filter>
+    </ClCompile>
+    <ClCompile Include="dll_main.cpp">
+      <Filter>Исходные файлы\dll_config</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Исходные файлы\dll_config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ver_info.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Trace.h">
+    <ClInclude Include="trace.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="ExecutableName.h">
+    <ClInclude Include="executable_name.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Registry.h">
-      <Filter>Исходные файлы\RegEdit</Filter>
+    <ClInclude Include="registry.h">
+      <Filter>Исходные файлы\registry</Filter>
+    </ClInclude>
+    <ClInclude Include="error_processing.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="i_logger.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="i_debug_mode_dependent_entity.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Исходные файлы\dll_config</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Исходные файлы\dll_config</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Исходные файлы\logger</Filter>
+    </ClInclude>
+    <ClInclude Include="log_collector.h">
+      <Filter>Исходные файлы\logger</Filter>
+    </ClInclude>
+    <ClInclude Include="dll_state.h">
+      <Filter>Исходные файлы\dll_config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

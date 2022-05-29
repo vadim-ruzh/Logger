@@ -1,64 +1,36 @@
-﻿#include <fstream>
+﻿#include "logger.h"
+#include "error_processing.h"
+#include "executable_name.h"
+#include "registry.h"
+#include "ver_info.h"
+
+#include <string_view>
+#include <fstream>
+#include <filesystem>
 #include <sstream>
 #include <thread>
-#include <boost/date_time.hpp>
-#include <boost/filesystem.hpp>
-#include "ver_info.h"
 #include <memory>
 #include <string>
 #include <mutex>
-#include "ExecutableName.h"
-#include "Registry.h"
+#include <boost/date_time.hpp>
+#include <boost/locale/encoding_utf.hpp>
+#include <boost/scope_exit.hpp>
 
-class Logger
+namespace
 {
-public:
-	Logger(const std::string& programName = "") :
-	dbgMode(CheckDbg(programName.empty() ? GetExecutableName() : programName)),
-	m_pathToLog(InitPathToLog(programName.empty() ? GetExecutableName() : programName)){}
+	constexpr std::wstring_view registryNameOfDebugModeKey = L"DebugMode";
+	constexpr std::string_view registryPathToCurrentUserSoftware = "HKEY_CURRENT_USER\\SOFTWARE\\";
+	constexpr std::string_view pathToProgramData = "C:/ProgramData";
+	constexpr std::string_view logFolderName = "Log";
+	static constexpr DWORD registryValueWhenDebugIsEnabled = 1000;
 
-	void WriteToFile(const std::string& message)
-	{
-		m_mutex.lock();
-
-		std::ofstream mOfstrm;
-		mOfstrm.rdbuf()->open(m_pathToLog.string(), std::ios_base::app, _SH_DENYWR);
-		mOfstrm << message;
-		mOfstrm.close();
-
-		m_mutex.unlock();
-	}
-
-	bool dbgMode;
-private:
-	boost::filesystem::path InitPathToLog(const std::string& programName)
-	{
-		boost::filesystem::path logPath("C:/ProgramData");
-		logPath /= programName;
-		logPath /= "Log";
-		if(!exists(logPath))
-		{
-			create_directories(logPath);
-		}
-
-		logPath /= createLogFileName(programName);
-		if(!exists(logPath))
-		{
-			std::ofstream fstream(logPath.c_str());
-			fstream.close();
-		}
-
-		return logPath;
-	}
-
-	std::string createLogFileName(const std::string& programName)
+	std::string GetNameOfLogFile(std::string_view programName)
 	{
 		std::stringstream fileName;
 
 		fileName << programName << "_";
-#ifdef PROGRAM_VERSION
-		fileName << PROGRAM_VERSION <<"_";
-#endif
+		fileName << PROGRAM_VERSION << "_";
+
 		const boost::posix_time::ptime date_time = boost::posix_time::second_clock::local_time();
 		fileName.imbue(std::locale(fileName.getloc(), new boost::posix_time::time_facet("%d.%m.%Y_%H.%M")));
 		fileName << date_time << ".log";
@@ -66,59 +38,84 @@ private:
 		return fileName.str();
 	}
 
-	bool CheckDbg(const std::string& programName)
+	std::filesystem::path GetPathToLog(std::string_view programName)
 	{
-		const auto pathToRegistryKey = utf8toUtf16("HKEY_CURRENT_USER\\SOFTWARE\\" + programName);
+		const std::string programNameInLogFile = programName.empty()
+			                                         ? GetExecutableName()
+			                                         : programName.data();
 
-		Reg::Editor regEditor(pathToRegistryKey);
-
-		DWORD result;
-		auto readStatus = regEditor.GetDword(L"DebugMode", result);
-		if(readStatus != Reg::ResultCode::sOk)
+		std::filesystem::path pathToLogFile{ pathToProgramData };
+		pathToLogFile /= programNameInLogFile;
+		pathToLogFile /= logFolderName;
+		if (!exists(pathToLogFile))
 		{
-			auto setStatus = regEditor.SetDword(L"DebugMode", 1050);
-			if(setStatus != Reg::ResultCode::sOk)
-			{
-				return false;
-			}
-			result = 999;
-		} 
-		if(result < 1000)
-		{
-			return false;
+			create_directories(pathToLogFile);
 		}
 
-		return true;
+		pathToLogFile /= GetNameOfLogFile(programNameInLogFile);
+		if (!exists(pathToLogFile))
+		{
+			std::ofstream logFileStream(pathToLogFile.c_str());
+			if (!logFileStream)
+				throw std::runtime_error("Can't create log file");
+
+			logFileStream.close();
+		}
+
+		return pathToLogFile;
 	}
 
-	std::mutex m_mutex;
-	boost::filesystem::path m_pathToLog;
-};
+	bool IsDebugModeEnabledInRegistry(std::string_view programName)
+	{
+		const std::string programNameInLogFile = programName.empty()
+								? GetExecutableName()
+								: programName.data();
 
-class Collector
+		const auto pathToProgramRegistryKey = boost::locale::conv::utf_to_utf<wchar_t>(
+			registryPathToCurrentUserSoftware.data() + programNameInLogFile);
+
+		const registry::RegistryEditor regEditor(pathToProgramRegistryKey);
+
+		DWORD debugModeValue;
+		const auto result = regEditor.GetDword(registryNameOfDebugModeKey, debugModeValue);
+		if (result != registry::ResultCode::sOk)
+		{
+			debugModeValue = 1050;
+			ERROR_RETURN_EX(regEditor.SetDword(registryNameOfDebugModeKey, debugModeValue), false)
+				<< "Can't set " << registryNameOfDebugModeKey.data() << " register key value to " << debugModeValue;
+		}
+
+		return debugModeValue < registryValueWhenDebugIsEnabled;
+	}
+}
+
+Logger::Logger(std::string_view programName)
+	: mPathToLog(GetPathToLog(programName))
+	, mIsDebugModeEnabled(IsDebugModeEnabledInRegistry(programName))
+{}
+
+Logger::Logger()
+	: Logger("")
+{}
+
+Logger::~Logger() = default;
+
+void Logger::Write(std::string_view message)
 {
-public:
-	Collector(const std::shared_ptr<Logger> logger) : m_loggerPtr(logger)
+	std::lock_guard lock{ mMutex };
+
+	std::ofstream fileStream;
+	fileStream.rdbuf()->open(mPathToLog.string(), std::ios_base::app, _SH_DENYWR);
+
+	BOOST_SCOPE_EXIT((&fileStream))
 	{
-		dbgMode = m_loggerPtr->dbgMode;
-	}
+		fileStream.close();
+	} BOOST_SCOPE_EXIT_END
 
-	template<typename T>
-	Collector& operator<<(const T& message)
-	{
-		m_sstr << message;
-		return *this;
-	}
+	fileStream << message;
+}
 
-	~Collector()
-	{
-		m_loggerPtr->WriteToFile(m_sstr.str());
-	}
-
-	bool dbgMode;
-private:
-
-	std::shared_ptr<Logger> m_loggerPtr;
-	std::stringstream m_sstr;
-};
-
+bool Logger::IsDebugModeEnabled() const
+{
+	return mIsDebugModeEnabled;
+}

@@ -1,15 +1,16 @@
-#include"Registry.h"
+#include "registry.h"
+
 #include <codecvt>
-#include "unordered_map"
+#include <unordered_map>
 #include <boost/algorithm/string.hpp>
 #include <boost/locale.hpp>
 
 namespace details
 {
-	Reg::ResultCode SplitPathToReKey(const std::wstring& pathToRegKey, HKEY& dstHandleKey, std::wstring& dstSubKey)
+	registry::ResultCode SplitPathToRegistryKey(std::wstring_view pathToRegKey, HKEY& dstHandleKey, std::wstring& dstSubKey) noexcept
 	{
-		std::wstring handleKey = pathToRegKey;	//By default, take the whole expression as a handle key
-		std::wstring subKey; // By default,no sub key
+		std::wstring_view handleKey = pathToRegKey;	//By default, take the whole expression as a handle key
+		std::wstring_view subKey; // By default,no sub key
 
 		const size_t delimPosition = pathToRegKey.find_first_of(L'\\');
 		//If an expression contains the delimiter ...
@@ -21,7 +22,7 @@ namespace details
 			subKey = pathToRegKey.substr(delimPosition + 1, std::string::npos);
 		}
 
-		const std::unordered_map<std::wstring, HKEY> handleRegKeyMap
+		const std::unordered_map<std::wstring_view, HKEY> handleRegKeyMap
 		{
 			{ L"HKEY_USERS", HKEY_USERS},
 			{ L"HKEY_CLASSES_ROOT", HKEY_CLASSES_ROOT },
@@ -34,43 +35,42 @@ namespace details
 		//Checking that the value was found
 		if (requiredHandleKey == handleRegKeyMap.end())
 		{
-			return Reg::ResultCode::eIncorrectPathToKey;
+			return registry::ResultCode::eIncorrectPathToKey;
 		}
 
 		dstHandleKey = requiredHandleKey->second;
 		dstSubKey = subKey;
 
-		return Reg::ResultCode::sOk;
+		return registry::ResultCode::sOk;
 	}
-
-	Reg::ResultCode OpenRegKey(const HKEY& handleKey, const std::wstring& subKey,REGSAM access, HKEY& dstOpenRegKey)
+	registry::ResultCode OpenRegKey(const HKEY& handleKey, std::wstring_view subKey,REGSAM access, HKEY& dstOpenRegKey) noexcept
 	{
 		HKEY openRegKey;
 
 		const LSTATUS openStatus = RegOpenKeyExW(
 			handleKey,
-			subKey.c_str(),
+			subKey.data(),
 			0, //reserved ,must be 0
 			access,
 			&openRegKey
 		);
 		if (openStatus != ERROR_SUCCESS)
 		{
-			return Reg::ResultCode::eKeyOpeningError;
+			return registry::ResultCode::eKeyOpeningError;
 		}
 
 		dstOpenRegKey = openRegKey;
 
-		return Reg::ResultCode::sOk;
+		return registry::ResultCode::sOk;
 	}
 
-	Reg::ResultCode CreateRegKey(const HKEY& handleKey, const std::wstring& subKey, REGSAM access, HKEY& dstOpenRegKey)
+	registry::ResultCode CreateRegKey(HKEY handleKey, std::wstring_view subKey, REGSAM access, HKEY& dstOpenRegKey) noexcept
 	{
 		HKEY openRegKey;
 
 		const LSTATUS createStatus = RegCreateKeyExW(
 			handleKey,
-			subKey.c_str(),
+			subKey.data(),
 			0, //reserved ,must be 0
 			nullptr, //This parameter may be ignored(The user-defined class type of this key)
 			REG_OPTION_NON_VOLATILE, //use default value
@@ -82,75 +82,72 @@ namespace details
 
 		if (createStatus != ERROR_SUCCESS)
 		{
-			return Reg::ResultCode::eKeyCreationError;
+			return registry::ResultCode::eKeyCreationError;
 		}
 
 		dstOpenRegKey = openRegKey;
 
-		return Reg::ResultCode::sOk;
+		return registry::ResultCode::sOk;
 	}
 
-	Reg::ResultCode CreateIfKeyCantBeOpen(const HKEY& handleKey, const std::wstring& subKey,REGSAM access, HKEY& dstOpenRegKey)
+	registry::ResultCode CreateIfKeyCantBeOpen(const HKEY& handleKey, std::wstring_view subKey, REGSAM access, HKEY& dstOpenRegKey) noexcept
 	{
 		HKEY openRegKey;
 
-		const Reg::ResultCode openKeyResultCode = details::OpenRegKey(handleKey, subKey, access, openRegKey);
+		const registry::ResultCode openKeyResultCode = details::OpenRegKey(handleKey, subKey, access, openRegKey);
 		//if the key cannot be opened...
-		if (openKeyResultCode != Reg::ResultCode::sOk)
+		if (openKeyResultCode != registry::ResultCode::sOk)
 		{
 			//..try to create it, if you have write access
 
-			if (access != KEY_ALL_ACCESS && access != KEY_WRITE)
+			if (access != KEY_ALL_ACCESS 
+			 && access != KEY_WRITE)
 			{
-				return Reg::ResultCode::ePermissionError;
+				return registry::ResultCode::ePermissionError;
 			}
 
-			const Reg::ResultCode createKeyResultCode = details::CreateRegKey(handleKey, subKey, access, openRegKey);
-			if (createKeyResultCode != Reg::ResultCode::sOk)
+			const registry::ResultCode createKeyResultCode = details::CreateRegKey(handleKey, subKey, access, openRegKey);
+			if (createKeyResultCode != registry::ResultCode::sOk)
 			{
 				return createKeyResultCode;
 			}
 		}
 
 		dstOpenRegKey = openRegKey;
-		return Reg::ResultCode::sOk;
+		return registry::ResultCode::sOk;
 	}
 
 }
 
-
-Reg::Exception::Exception(const std::string& errorMessage, const ResultCode& errorCode) : runtime_error(errorMessage), mErrorCode_(errorCode)
+registry::Exception::Exception(std::string_view errorMessage, ResultCode errorCode)
+	: runtime_error(errorMessage.data())
+	, mErrorCode(errorCode)
 {
 	
 }
 
-Reg::ResultCode Reg::Exception::GetErrorCode() const
+registry::ResultCode registry::Exception::GetErrorCode() const noexcept
 {
-	return mErrorCode_;
+	return mErrorCode;
 }
 
 
 
-Reg::Editor::Editor(const std::wstring& pathToRegKey,const bool& readOnly) noexcept(false)
+registry::RegistryEditor::RegistryEditor(std::wstring_view pathToRegKey, bool isReadOnly) noexcept(false)
+	: mRegKey(std::make_optional<Key>(pathToRegKey, isReadOnly))
 {
-	mRegKey_ = std::make_unique<Key>(pathToRegKey, readOnly);
+	
 }
 
-Reg::Editor::~Editor()
-{
-	mRegKey_.reset();
-}
+registry::RegistryEditor::~RegistryEditor() = default;
 
-/**
- * @remark If an exception is raised during the initialization of a new key, the old key will not be changed
- */
-Reg::ResultCode Reg::Editor::ChangeKey(const std::wstring& pathToRegKey, const bool& readOnly) noexcept(false)
+registry::ResultCode registry::RegistryEditor::ChangeKey(std::wstring_view pathToRegKey, const bool& isReadOnly) noexcept
 {
 	try
 	{
-		mRegKey_ = std::make_unique<Key>(pathToRegKey,readOnly);
+		mRegKey.emplace(pathToRegKey, isReadOnly);
 	}
-	catch (Reg::Exception& err)
+	catch (registry::Exception& err)
 	{
 		return err.GetErrorCode();
 	}
@@ -159,15 +156,15 @@ Reg::ResultCode Reg::Editor::ChangeKey(const std::wstring& pathToRegKey, const b
 }
 
 
-Reg::ResultCode Reg::Editor::GetDword(const std::wstring& valueName, DWORD& data) const
+registry::ResultCode registry::RegistryEditor::GetDword(std::wstring_view name, DWORD& value) const noexcept
 {
 	DWORD buffer = 0;
 	DWORD bufferSize = sizeof(buffer);
 
 	const LSTATUS readDataStatus = RegGetValue(
-		mRegKey_->GetOpenKey(),
+		mRegKey->GetOpenedKey(),
 		L"", //no subkey
-		valueName.c_str(),
+		name.data(),
 		RRF_RT_REG_DWORD, //required value type
 		nullptr, //information about the type of data in the value(Not required)
 		&buffer,
@@ -179,19 +176,19 @@ Reg::ResultCode Reg::Editor::GetDword(const std::wstring& valueName, DWORD& data
 		return ResultCode::eValueReadingError;
 	}
 
-	data = buffer;
+	value = buffer;
 	return ResultCode::sOk;
 }
 
-Reg::ResultCode Reg::Editor::GetQword(const std::wstring& valueName, ULONGLONG& data) const
+registry::ResultCode registry::RegistryEditor::GetQword(std::wstring_view name, ULONGLONG& value) const noexcept
 {
 	ULONGLONG buffer = 0;
 	DWORD bufferSize = sizeof(buffer);
 
 	const LSTATUS readDataStatus = RegGetValue(
-		mRegKey_->GetOpenKey(),
+		mRegKey->GetOpenedKey(),
 		L"", //no subkey
-		valueName.c_str(),
+		name.data(),
 		RRF_RT_REG_QWORD, // restricts the type of the registry value
 		nullptr, //information about the type of data in the value(Not required)
 		&buffer,
@@ -202,18 +199,18 @@ Reg::ResultCode Reg::Editor::GetQword(const std::wstring& valueName, ULONGLONG& 
 		return ResultCode::eValueReadingError;
 	}
 
-	data = buffer;
+	value = buffer;
 	return ResultCode::sOk;
 }
 
-Reg::ResultCode Reg::Editor::GetString(const std::wstring& valueName, std::wstring& data) const
+registry::ResultCode registry::RegistryEditor::GetString(std::wstring_view name, std::wstring& value) const noexcept
 {
 	DWORD bufferSize = 0;
 
 	const LSTATUS readDataSizeStatus = RegGetValue(
-		mRegKey_->GetOpenKey(),
+		mRegKey->GetOpenedKey(),
 		L"", //no subkey
-		valueName.c_str(),
+		name.data(),
 		RRF_RT_REG_SZ, // restricts the type of the registry value
 		nullptr, //information about the type of data in the value(Not required)
 		nullptr, //no data 
@@ -225,17 +222,15 @@ Reg::ResultCode Reg::Editor::GetString(const std::wstring& valueName, std::wstri
 		return ResultCode::eValueReadingError;
 	}
 
-	DWORD lenghtWcharString = bufferSize / sizeof(wchar_t);
-	std::wstring buffer;
-	buffer.resize(lenghtWcharString);
+	std::wstring buffer(bufferSize / sizeof(wchar_t), L' ');
 
 	const LSTATUS readDataStatus = RegGetValue(
-		mRegKey_->GetOpenKey(),
+		mRegKey->GetOpenedKey(),
 		L"", //no subkey
-		valueName.c_str(),
+		name.data(),
 		RRF_RT_REG_SZ, // restricts the type of the registry value
 		nullptr, //information about the type of data in the value(Not required)
-		&buffer,
+		buffer.data(),
 		&bufferSize
 	);
 	if (readDataStatus != ERROR_SUCCESS)
@@ -244,21 +239,21 @@ Reg::ResultCode Reg::Editor::GetString(const std::wstring& valueName, std::wstri
 	}
 
 	//Removing a duplicate null character
-	buffer.resize(--lenghtWcharString);
+	buffer.resize(bufferSize / sizeof(wchar_t) - 1);
 
-	data = buffer;
+	value = buffer;
 	return ResultCode::sOk;
 }
 
-Reg::ResultCode Reg::Editor::GetExpandString(const std::wstring& valueName, std::wstring& data) const
+registry::ResultCode registry::RegistryEditor::GetExpandString(std::wstring_view name, std::wstring& value) const noexcept
 {
 	DWORD bufferSize = 0;
 
 	const LSTATUS readDataSizeStatus = RegGetValue(
-		mRegKey_->GetOpenKey(),
+		mRegKey->GetOpenedKey(),
 		L"", //no subkey
-		valueName.c_str(),
-		RRF_RT_REG_EXPAND_SZ, // restricts the type of the registry value 
+		name.data(),
+		RRF_RT_REG_EXPAND_SZ | RRF_NOEXPAND, // restricts the type of the registry value 
 		nullptr, //information about the type of data in the value(Not required)
 		nullptr, //No data needed
 		&bufferSize
@@ -269,17 +264,15 @@ Reg::ResultCode Reg::Editor::GetExpandString(const std::wstring& valueName, std:
 		return ResultCode::eValueReadingError;
 	}
 
-	DWORD lenghtWcharString = bufferSize / sizeof(wchar_t);
-	std::wstring buffer;
-	buffer.resize(lenghtWcharString);
+	std::wstring buffer(bufferSize / sizeof(wchar_t),L' ');
 
 	const LSTATUS readDataStatus = RegGetValue(
-		mRegKey_->GetOpenKey(),
+		mRegKey->GetOpenedKey(),
 		L"", //no subkey
-		valueName.c_str(),
-		RRF_RT_REG_EXPAND_SZ, //required value type
+		name.data(),
+		RRF_RT_REG_EXPAND_SZ | RRF_NOEXPAND, //required value type
 		nullptr, //information about the type of data in the value(Not required)
-		&buffer,
+		buffer.data(),
 		&bufferSize
 	);
 	if (readDataStatus != ERROR_SUCCESS)
@@ -288,30 +281,27 @@ Reg::ResultCode Reg::Editor::GetExpandString(const std::wstring& valueName, std:
 	}
 
 	//Removing a duplicate null character
-	buffer.resize(--lenghtWcharString);
+	buffer.resize(bufferSize / sizeof(wchar_t) - 1);
 
-	data = buffer;
+	value = buffer;
 	return ResultCode::sOk;
 }
 
-/**
- * @remark The function is not useful, if at Key was initialized with ReadOnly status
- */
-Reg::ResultCode Reg::Editor::SetDword(const std::wstring& valueName, const DWORD& data) const
+registry::ResultCode registry::RegistryEditor::SetDword(std::wstring_view name, DWORD value) const noexcept
 {
-	if (mRegKey_->IsReadOnly())
+	if (mRegKey->IsReadOnly())
 	{
 		return ResultCode::ePermissionError;
 	}
 
-	constexpr DWORD dataSize = sizeof(data);
+	constexpr DWORD dataSize = sizeof(value);
 
 	const LSTATUS setValueStatus = RegSetValueExW(
-		mRegKey_->GetOpenKey(),
-		valueName.c_str(),
+		mRegKey->GetOpenedKey(),
+		name.data(),
 		0, //reserved,must be 0
 		REG_DWORD, //data type
-		reinterpret_cast<const BYTE*>(&data),
+		reinterpret_cast<const BYTE*>(&value),
 		dataSize
 	);
 
@@ -323,24 +313,21 @@ Reg::ResultCode Reg::Editor::SetDword(const std::wstring& valueName, const DWORD
 	return ResultCode::sOk;
 }
 
-/**
- * @remark The function is not useful, if at Key was initialized with ReadOnly status
- */
-Reg::ResultCode Reg::Editor::SetQword(const std::wstring& valueName, const ULONGLONG& data) const
+registry::ResultCode registry::RegistryEditor::SetQword(std::wstring_view name, ULONGLONG value) const noexcept
 {
-	if (mRegKey_->IsReadOnly())
+	if (mRegKey->IsReadOnly())
 	{
 		return ResultCode::ePermissionError;
 	}
 
-	constexpr  DWORD dataSize = sizeof(data);
+	constexpr DWORD dataSize = sizeof(value);
 
 	const LSTATUS setValueStatus = RegSetValueExW(
-		mRegKey_->GetOpenKey(),
-		valueName.c_str(),
+		mRegKey->GetOpenedKey(),
+		name.data(),
 		0, //reserved,must be 0
 		REG_QWORD, //data type
-		reinterpret_cast<const BYTE*>(&data),
+		reinterpret_cast<const BYTE*>(&value),
 		dataSize
 	);
 
@@ -352,24 +339,21 @@ Reg::ResultCode Reg::Editor::SetQword(const std::wstring& valueName, const ULONG
 	return ResultCode::sOk;
 }
 
-/**
- * @remark The function is not useful, if at Key was initialized with ReadOnly status
- */
-Reg::ResultCode Reg::Editor::SetString(const std::wstring& valueName, const std::wstring& data) const
+registry::ResultCode registry::RegistryEditor::SetString(std::wstring_view name, std::wstring_view value) const noexcept
 {
-	if (mRegKey_->IsReadOnly())
+	if (mRegKey->IsReadOnly())
 	{
 		return ResultCode::ePermissionError;
 	}
 
-	const DWORD dataSize = data.size() * sizeof(wchar_t);
+	const DWORD dataSize = (value.size() + 1) * sizeof(wchar_t);
 
 	const LSTATUS setValueStatus = RegSetValueExW(
-		mRegKey_->GetOpenKey(),
-		valueName.c_str(),
+		mRegKey->GetOpenedKey(),
+		name.data(),
 		0, //reserved,must be 0
 		REG_SZ, //data type
-		reinterpret_cast<const BYTE*>(&data),
+		reinterpret_cast<const BYTE*>(value.data()),
 		dataSize
 	);
 
@@ -382,24 +366,21 @@ Reg::ResultCode Reg::Editor::SetString(const std::wstring& valueName, const std:
 
 }
 
-/**
- * @remark The function is not useful, if at Key was initialized with ReadOnly status
- */
-Reg::ResultCode Reg::Editor::SetExpandString(const std::wstring& valueName, const std::wstring& data) const
+registry::ResultCode registry::RegistryEditor::SetExpandString(std::wstring_view name, std::wstring_view value) const noexcept
 {
-	if (mRegKey_->IsReadOnly())
+	if (mRegKey->IsReadOnly())
 	{
 		return ResultCode::ePermissionError;
 	}
 
-	const DWORD dataSize = data.size() * sizeof(wchar_t);
+	const DWORD dataSize = (value.size() + 1) * sizeof(wchar_t);
 
 	const LSTATUS setValueStatus = RegSetValueExW(
-		mRegKey_->GetOpenKey(),
-		valueName.c_str(),
+		mRegKey->GetOpenedKey(),
+		name.data(),
 		0, //reserved,must be 0
 		REG_EXPAND_SZ, //data type
-		reinterpret_cast<const BYTE*>(&data),
+		reinterpret_cast<const BYTE*>(value.data()),
 		dataSize
 	);
 
@@ -412,45 +393,37 @@ Reg::ResultCode Reg::Editor::SetExpandString(const std::wstring& valueName, cons
 
 }
 
-
-/**
- * @remark The exception is called to exclude an undefined state of the key
- * @remark When an exception is raised, the key cannot be opened, so there is no need to close it
- * @remark If ReadOnly = false,if the key in the given path cannot be opened,there will be an attempt to create it
- */
-Reg::Key::Key(const std::wstring& pathToRegKey,const bool& readOnly) noexcept(false) : mOpenRegistryKey_(nullptr) , mAccessRight_(KEY_READ)
+registry::Key::Key(std::wstring_view pathToRegistryKey, bool isReadOnly) noexcept(false)
+	: mOpenRegistryKey(nullptr)
+	, mAccessRight(KEY_READ)
 {
-	if(!readOnly)
+	if(!isReadOnly)
 	{
-		mAccessRight_ = KEY_ALL_ACCESS;
+		mAccessRight = KEY_ALL_ACCESS;
 	}
 
 	HKEY handleKey;
 	std::wstring subKey;
 
-	const Reg::ResultCode convertKeyResultCode = details::SplitPathToReKey(pathToRegKey, handleKey, subKey);
-	if (convertKeyResultCode != Reg::ResultCode::sOk)
+	registry::ResultCode result = details::SplitPathToRegistryKey(pathToRegistryKey, handleKey, subKey);
+	if (result != registry::ResultCode::sOk)
 	{
-		throw Reg::Exception("Wrong path to the key",convertKeyResultCode);
+		throw registry::Exception("Wrong path to the key", result);
 	}
 
-	const Reg::ResultCode InitRegKeyResultCode = details::CreateIfKeyCantBeOpen(handleKey, subKey,mAccessRight_,mOpenRegistryKey_);
-	if(InitRegKeyResultCode != ResultCode::sOk)
+	result = details::CreateIfKeyCantBeOpen(handleKey, subKey, mAccessRight, mOpenRegistryKey);
+	if(result != ResultCode::sOk)
 	{
-		throw  Reg::Exception("Key initialization error", InitRegKeyResultCode);
+		throw registry::Exception("Key initialization error", result);
 	}
 }
 
-Reg::Key::~Key()
+registry::Key::~Key() noexcept
 {
-	RegCloseKey(mOpenRegistryKey_);
+	RegCloseKey(mOpenRegistryKey);
 }
 
-/**
- * @remark The function is not useful, if any of the parameters is empty.
- * @remark The function is not useful, if at Key was initialized with ReadOnly status
- */
-Reg::ResultCode Reg::Key::RenameSubKey(const std::wstring& subKey, const std::wstring& newSubKeyName) const 
+registry::ResultCode registry::Key::RenameSubKey(std::wstring_view subKey, std::wstring_view newSubKeyName) const noexcept
 {
 	if (IsReadOnly())
 	{
@@ -462,7 +435,7 @@ Reg::ResultCode Reg::Key::RenameSubKey(const std::wstring& subKey, const std::ws
 		return ResultCode::eIncorrectPathToKey;
 	}
 
-	const LSTATUS renameSubKeyStatus = RegRenameKey(mOpenRegistryKey_, subKey.c_str(), newSubKeyName.c_str());
+	const LSTATUS renameSubKeyStatus = RegRenameKey(mOpenRegistryKey, subKey.data(), newSubKeyName.data());
 	if(renameSubKeyStatus != ERROR_SUCCESS)
 	{
 		return ResultCode::eRenameValueError;
@@ -471,11 +444,7 @@ Reg::ResultCode Reg::Key::RenameSubKey(const std::wstring& subKey, const std::ws
 	return ResultCode::sOk;
 }
 
-/**
- * @remark The function is not useful, if subkey is empty
- * @remark The function is not useful, if at Key was initialized with ReadOnly status
- */
-Reg::ResultCode Reg::Key::CreateSubKey(const std::wstring& subKey) const
+registry::ResultCode registry::Key::CreateSubKey(std::wstring_view subKey) const noexcept
 {
 	if (IsReadOnly())
 	{
@@ -488,14 +457,10 @@ Reg::ResultCode Reg::Key::CreateSubKey(const std::wstring& subKey) const
 	}
 
 	HKEY openSubKey;
-	return details::CreateRegKey(mOpenRegistryKey_, subKey,mAccessRight_, openSubKey);
+	return details::CreateRegKey(mOpenRegistryKey, subKey, mAccessRight, openSubKey);
 }
 
-/**
- * @remark The function is not useful, if subkey is empty
- * @remark The function is not useful, if at Key was initialized with ReadOnly status
- */
-Reg::ResultCode Reg::Key::DeleteSubKey(const std::wstring& subKey) const
+registry::ResultCode registry::Key::DeleteSubKey(std::wstring_view subKey) const noexcept
 {
 	if (IsReadOnly())
 	{
@@ -507,7 +472,7 @@ Reg::ResultCode Reg::Key::DeleteSubKey(const std::wstring& subKey) const
 		return ResultCode::eIncorrectPathToKey;
 	}
 
-	const LSTATUS deleteSubKeyStatus = RegDeleteKeyExW(mOpenRegistryKey_, subKey.c_str(), mAccessRight_, 0);
+	const LSTATUS deleteSubKeyStatus = RegDeleteKeyExW(mOpenRegistryKey, subKey.data(), mAccessRight, 0);
 	if (deleteSubKeyStatus != ERROR_SUCCESS)
 	{
 		return ResultCode::eDeleteError;
@@ -516,19 +481,12 @@ Reg::ResultCode Reg::Key::DeleteSubKey(const std::wstring& subKey) const
 	return ResultCode::sOk;
 }
 
-HKEY Reg::Key::GetOpenKey() const
+HKEY registry::Key::GetOpenedKey() const noexcept
 {
-	return mOpenRegistryKey_;
+	return mOpenRegistryKey;
 }
 
-bool Reg::Key::IsReadOnly() const
+bool registry::Key::IsReadOnly() const noexcept
 {
-	return mAccessRight_ != KEY_ALL_ACCESS ? true : false;
-}
-
-std::wstring utf8toUtf16(const std::string& str)
-{
-	boost::locale::conv::utf_to_utf<wchar_t>(str);
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
-	return conv.from_bytes(str);
+	return mAccessRight != KEY_ALL_ACCESS;
 }
