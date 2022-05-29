@@ -1,8 +1,7 @@
 ﻿#define BOOST_TEST_MODULE RegistryTest
 
 #include <boost/test/included/unit_test.hpp>
-#include "../Logger/Registry.cpp"
-#include "../Logger/Registry.h"
+#include "registry.h"
 
 
 std::wstring_view testRegistryPath = L"HKEY_CURRENT_USER\\SOFTWARE\\RegTest";

@@ -2,7 +2,26 @@
 
 #include "executable_name.h"
 #include "logger.h"
+#include "registry.h"
 #include "trace.h"
+
+BOOL WINAPI DllMain(HANDLE hInst, DWORD dwReason, LPVOID IpReserved)
+{
+    BOOL bAllWentWell = TRUE;
+    switch (dwReason)
+    {
+    case DLL_PROCESS_ATTACH:     // Инициализация процесса. 
+        break;
+    case DLL_THREAD_ATTACH:     // Инициализация потока.
+        break;
+    case DLL_THREAD_DETACH:     // Очистка структур потока.
+        break;
+    case DLL_PROCESS_DETACH:     // Очистка структур процесса.
+        break;
+    }
+    if (bAllWentWell)     return TRUE;
+    else            return FALSE;
+}
 
 int main()
 {

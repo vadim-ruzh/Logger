@@ -133,7 +133,7 @@ registry::ResultCode registry::Exception::GetErrorCode() const
 
 
 
-registry::RegistryEditor::RegistryEditor(std::wstring_view pathToRegKey, const bool& isReadOnly) noexcept(false)
+registry::RegistryEditor::RegistryEditor(std::wstring_view pathToRegKey, bool isReadOnly) noexcept(false)
 	: mRegKey(std::make_optional<Key>(pathToRegKey, isReadOnly))
 {
 	
@@ -232,7 +232,7 @@ registry::ResultCode registry::RegistryEditor::GetString(std::wstring_view name,
 		name.data(),
 		RRF_RT_REG_SZ, // restricts the type of the registry value
 		nullptr, //information about the type of data in the value(Not required)
-		&buffer,
+		buffer.data(),
 		&bufferSize
 	);
 	if (readDataStatus != ERROR_SUCCESS)
@@ -357,7 +357,7 @@ registry::ResultCode registry::RegistryEditor::SetString(std::wstring_view name,
 		name.data(),
 		0, //reserved,must be 0
 		REG_SZ, //data type
-		reinterpret_cast<const BYTE*>(&value),
+		reinterpret_cast<const BYTE*>(value.data()),
 		dataSize
 	);
 

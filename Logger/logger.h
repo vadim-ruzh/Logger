@@ -5,20 +5,7 @@
 #include <mutex>
 #include <string_view>
 #include <boost/filesystem.hpp>
-
-class IDebugModeDependentEntity
-{
-public:
-	virtual ~IDebugModeDependentEntity() = default;
-	[[nodiscard]] virtual bool IsDebugModeEnabled() const = 0;
-};
-
-class ILogger
-{
-public:
-	virtual ~ILogger() = default;
-	virtual void Write(std::string_view message) = 0;
-};
+#include "ILogger.h"
 
 class Logger
 	: public ILogger

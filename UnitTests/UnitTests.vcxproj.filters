@@ -13,10 +13,19 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Testee">
+      <UniqueIdentifier>{870f3b36-7829-46b4-bf95-49398149a765}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UnitTests.cpp">
       <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Logger\logger.cpp">
+      <Filter>Testee</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Logger\registry.cpp">
+      <Filter>Testee</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

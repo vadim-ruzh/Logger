@@ -78,6 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -117,10 +119,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>F:\projects\NewCppProgrammer\Logger\Logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,6 +145,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Logger\logger.cpp" />
+    <ClCompile Include="..\Logger\registry.cpp" />
     <ClCompile Include="UnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -147,16 +154,22 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\boost.1.79.0\build\boost.targets" Condition="Exists('..\packages\boost.1.79.0\build\boost.targets')" />
-    <Import Project="..\packages\boost_unit_test_framework-vc142.1.79.0\build\boost_unit_test_framework-vc142.targets" Condition="Exists('..\packages\boost_unit_test_framework-vc142.1.79.0\build\boost_unit_test_framework-vc142.targets')" />
-    <Import Project="..\packages\boost_locale-vc142.1.79.0\build\boost_locale-vc142.targets" Condition="Exists('..\packages\boost_locale-vc142.1.79.0\build\boost_locale-vc142.targets')" />
+    <Import Project="..\packages\boost.1.78.0\build\boost.targets" Condition="Exists('..\packages\boost.1.78.0\build\boost.targets')" />
+    <Import Project="..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets" Condition="Exists('..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets')" />
+    <Import Project="..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets" Condition="Exists('..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets')" />
+    <Import Project="..\packages\boost_unit_test_framework-vc142.1.78.0\build\boost_unit_test_framework-vc142.targets" Condition="Exists('..\packages\boost_unit_test_framework-vc142.1.78.0\build\boost_unit_test_framework-vc142.targets')" />
+    <Import Project="..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets" Condition="Exists('..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets')" />
+    <Import Project="..\packages\boost_date_time-vc142.1.78.0\build\boost_date_time-vc142.targets" Condition="Exists('..\packages\boost_date_time-vc142.1.78.0\build\boost_date_time-vc142.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\boost.1.79.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.79.0\build\boost.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_unit_test_framework-vc142.1.79.0\build\boost_unit_test_framework-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_unit_test_framework-vc142.1.79.0\build\boost_unit_test_framework-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_locale-vc142.1.79.0\build\boost_locale-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_locale-vc142.1.79.0\build\boost_locale-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\boost.1.78.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.78.0\build\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_filesystem-vc142.1.78.0\build\boost_filesystem-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_locale-vc142.1.78.0\build\boost_locale-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_unit_test_framework-vc142.1.78.0\build\boost_unit_test_framework-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_unit_test_framework-vc142.1.78.0\build\boost_unit_test_framework-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc142.1.78.0\build\boost_chrono-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_date_time-vc142.1.78.0\build\boost_date_time-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_date_time-vc142.1.78.0\build\boost_date_time-vc142.targets'))" />
   </Target>
 </Project>

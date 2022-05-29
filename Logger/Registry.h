@@ -1,9 +1,11 @@
 #pragma once
-#include <memory>
+
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <Windows.h>
+#include <filesystem>
+#include <string_view>
 #include <boost/noncopyable.hpp>
 
 namespace registry
@@ -70,7 +72,7 @@ namespace registry
 	class RegistryEditor : boost::noncopyable
 	{
 	public:
-		RegistryEditor(std::wstring_view pathToRegKey, const bool& isReadOnly = false) noexcept(false);
+		explicit RegistryEditor(std::wstring_view pathToRegKey, bool isReadOnly = false) noexcept(false);
 		~RegistryEditor();
 
 		/**

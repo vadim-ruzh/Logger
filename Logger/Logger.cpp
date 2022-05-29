@@ -18,10 +18,10 @@
 
 namespace
 {
-	static constexpr std::wstring_view registryNameOfDebugModeKey = L"DebugMode";
-	static constexpr std::string_view registryPathToCurrentUserSoftware = "HKEY_CURRENT_USER\\SOFTWARE\\";
-	static constexpr std::string_view pathToProgramData = "C:/ProgramData";
-	static constexpr std::string_view logFolderName = "Log";
+	constexpr std::wstring_view registryNameOfDebugModeKey = L"DebugMode";
+	constexpr std::string_view registryPathToCurrentUserSoftware = "HKEY_CURRENT_USER\\SOFTWARE\\";
+	constexpr std::string_view pathToProgramData = "C:/ProgramData";
+	constexpr std::string_view logFolderName = "Log";
 	static constexpr DWORD registryValueWhenDebugIsEnabled = 1000;
 
 	std::string GetNameOfLogFile(std::string_view programName)
