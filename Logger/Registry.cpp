@@ -223,9 +223,7 @@ registry::ResultCode registry::RegistryEditor::GetString(std::wstring_view name,
 		return ResultCode::eValueReadingError;
 	}
 
-	DWORD lenghtWcharString = bufferSize / sizeof(wchar_t);
-	std::wstring buffer;
-	buffer.resize(lenghtWcharString);
+	std::wstring buffer(bufferSize / sizeof(wchar_t), L' ');
 
 	const LSTATUS readDataStatus = RegGetValue(
 		mRegKey->GetOpenedKey(),
@@ -242,7 +240,7 @@ registry::ResultCode registry::RegistryEditor::GetString(std::wstring_view name,
 	}
 
 	//Removing a duplicate null character
-	buffer.resize(--lenghtWcharString);
+	buffer.resize(bufferSize / sizeof(wchar_t) - 1);
 
 	value = buffer;
 	return ResultCode::sOk;
@@ -256,7 +254,7 @@ registry::ResultCode registry::RegistryEditor::GetExpandString(std::wstring_view
 		mRegKey->GetOpenedKey(),
 		L"", //no subkey
 		name.data(),
-		RRF_RT_REG_EXPAND_SZ, // restricts the type of the registry value 
+		RRF_RT_REG_EXPAND_SZ | RRF_NOEXPAND, // restricts the type of the registry value 
 		nullptr, //information about the type of data in the value(Not required)
 		nullptr, //No data needed
 		&bufferSize
@@ -267,17 +265,15 @@ registry::ResultCode registry::RegistryEditor::GetExpandString(std::wstring_view
 		return ResultCode::eValueReadingError;
 	}
 
-	DWORD lenghtWcharString = bufferSize / sizeof(wchar_t);
-	std::wstring buffer;
-	buffer.resize(lenghtWcharString);
+	std::wstring buffer(bufferSize / sizeof(wchar_t),L' ');
 
 	const LSTATUS readDataStatus = RegGetValue(
 		mRegKey->GetOpenedKey(),
 		L"", //no subkey
 		name.data(),
-		RRF_RT_REG_EXPAND_SZ, //required value type
+		RRF_RT_REG_EXPAND_SZ | RRF_NOEXPAND, //required value type
 		nullptr, //information about the type of data in the value(Not required)
-		&buffer,
+		buffer.data(),
 		&bufferSize
 	);
 	if (readDataStatus != ERROR_SUCCESS)
@@ -286,7 +282,7 @@ registry::ResultCode registry::RegistryEditor::GetExpandString(std::wstring_view
 	}
 
 	//Removing a duplicate null character
-	buffer.resize(--lenghtWcharString);
+	buffer.resize(bufferSize / sizeof(wchar_t) - 1);
 
 	value = buffer;
 	return ResultCode::sOk;
@@ -351,7 +347,7 @@ registry::ResultCode registry::RegistryEditor::SetString(std::wstring_view name,
 		return ResultCode::ePermissionError;
 	}
 
-	const DWORD dataSize = value.size() * sizeof(wchar_t);
+	const DWORD dataSize = (value.size() + 1) * sizeof(wchar_t);
 
 	const LSTATUS setValueStatus = RegSetValueExW(
 		mRegKey->GetOpenedKey(),
@@ -378,14 +374,14 @@ registry::ResultCode registry::RegistryEditor::SetExpandString(std::wstring_view
 		return ResultCode::ePermissionError;
 	}
 
-	const DWORD dataSize = value.size() * sizeof(wchar_t);
+	const DWORD dataSize = (value.size() + 1) * sizeof(wchar_t);
 
 	const LSTATUS setValueStatus = RegSetValueExW(
 		mRegKey->GetOpenedKey(),
 		name.data(),
 		0, //reserved,must be 0
 		REG_EXPAND_SZ, //data type
-		reinterpret_cast<const BYTE*>(&value),
+		reinterpret_cast<const BYTE*>(value.data()),
 		dataSize
 	);
 
